@@ -12,6 +12,14 @@ async fn main() -> Result<(), sqlx::Error> {
 
     query_example(&pool).await?;
 
+    execute_migrate(&pool).await?;
+
+    Ok(())
+}
+
+async fn execute_migrate(pool: &sqlx::PgPool) -> Result<(), sqlx::Error> {
+    sqlx::migrate!().run(pool).await?;
+
     Ok(())
 }
 
