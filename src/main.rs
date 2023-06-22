@@ -6,12 +6,13 @@ use sqlx::{postgres::PgPoolOptions, Row};
 
 const MAX_CONNECTIONS: u32 = 5;
 
+#[derive(Debug)]
 struct User {
     id: Uuid,
     name: String,
     email: String,
-    created_at: DateTime<Utc>,
-    updated_at: DateTime<Utc>,
+    created_at: Option<DateTime<Utc>>,
+    updated_at: Option<DateTime<Utc>>,
 }
 
 #[tokio::main]
@@ -29,10 +30,15 @@ async fn main() -> Result<(), sqlx::Error> {
         id: Uuid::new_v4(),
         name: "John Doe".to_string(),
         email: "jKv5S@example.com".to_string(),
-        created_at: Utc::now(),
-        updated_at: Utc::now(),
+        created_at: Some(Utc::now()),
+        updated_at: Some(Utc::now()),
     };
     add_user(&pool, user).await?;
+
+    let users = get_users(&pool).await?;
+    for user in users {
+        println!("{:?}", user);
+    }
 
     println!("Done!");
 
@@ -67,4 +73,12 @@ async fn add_user(pool: &sqlx::PgPool, user: User) -> Result<(), sqlx::Error> {
     .await?;
 
     Ok(())
+}
+
+async fn get_users(pool: &sqlx::PgPool) -> Result<Vec<User>, sqlx::Error> {
+    let users = sqlx::query_as!(User, "SELECT * FROM users")
+        .fetch_all(pool)
+        .await?;
+
+    Ok(users)
 }
